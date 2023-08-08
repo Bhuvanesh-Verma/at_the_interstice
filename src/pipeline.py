@@ -23,12 +23,13 @@ def preprocess_text(text):
     words = re.findall(r'\b\w+\b', text)
     return words
 
-def preprocess_data(actor_dict_file, dimension_dict_file):
-    with open(actor_dict_file) as f:
-        actor_dict = json.load(f)
+def preprocess_data(actor_dict=None, dimension_dict=None, actor_dict_file=None, dimension_dict_file=None):
+    if actor_dict is None:
+        with open(actor_dict_file) as f:
+            actor_dict = json.load(f)
 
-    with open(dimension_dict_file) as f:
-        dimension_dict = json.load(f)
+        with open(dimension_dict_file) as f:
+            dimension_dict = json.load(f)
 
     preprocessed_actors = {}
     preprocessed_dimensions = {}
@@ -231,9 +232,10 @@ def create_manual_3d(df, dimensions, shape_values, actor_rels):
     return fig
 
 
-def create_interstitial_plot(actor_dict_file, dimension_dict_file, plot_type, output_dir=None, save=False):
+def create_interstitial_plot(plot_type,data=None, dim_dict=None,  actor_dict_file=None, dimension_dict_file=None,
+                             output_dir=None, save=False):
     preprocessed_actors, preprocessed_dimensions, shape_values, actor_rels = preprocess_data(
-        actor_dict_file, dimension_dict_file
+        data, dim_dict, actor_dict_file, dimension_dict_file
     )
     actor_word_counts = count_word_occurrences(preprocessed_actors, preprocessed_dimensions)
     proportion_dataframe = create_proportion_dataframe(actor_word_counts, preprocessed_dimensions, shape_values, actor_rels)
@@ -260,6 +262,12 @@ def create_interstitial_plot(actor_dict_file, dimension_dict_file, plot_type, ou
 
     return fig
 
+def create_from_files(plot_type, actor_dict_file, dimension_dict_file, output_dir=None, save=False):
+    create_interstitial_plot(plot_type, actor_dict_file, dimension_dict_file, output_dir, save)
+
+def create_from_data(data, dimension_dict, plot_type,output_dir=None, save=False):
+    create_interstitial_plot(data, dimension_dict, plot_type, output_dir, save)
+
 def main():
     parser = argparse.ArgumentParser(description='Create a interstitial plot from input dictionaries.')
     parser.add_argument('-actor_dict_file', type=str, help='Path to the JSON file containing the actor dictionary.')
@@ -271,7 +279,7 @@ def main():
                         help='Type of plot: "2d" for 2D multi-dimensional plot, "3d" for 3D scatter plot.')
     args = parser.parse_args()
 
-    create_interstitial_plot(args.actor_dict_file, args.dimension_dict_file, args.plot_type, args.output_folder, args.save)
+    create_from_files(args.actor_dict_file, args.dimension_dict_file, args.plot_type, args.output_folder, args.save)
 
 if __name__ == '__main__':
     main()
